@@ -24,23 +24,20 @@ jobs:
         env:
           P12_PASSWORD: ${{ secrets.P12_PASSWORD }}
         run: |
-          security import Certificates.p12 -k ~/Library/Keychains/login.keychain -P pass:$P12_PASSWORD
-          security add-provisioning-profile DemoTest.mobileprovision
+          # Copy the certificate and provisioning profile to the correct locations
+          cp Certificates.p12 $RUNNER_TEMP/build_certificate.p12
+          cp DemoTest.mobileprovision $RUNNER_TEMP/build_pp.mobileprovision
+
+          # Import the certificate to the user keychain
+          security import $RUNNER_TEMP/build_certificate.p12 -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k ~/Library/Keychains/login.keychain-db
+          security list-keychain -d user -s ~/Library/Keychains/login.keychain-db
+
+          # Apply the provisioning profile
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp $RUNNER_TEMP/build_pp.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles
 
       - name: check Xcode version
         run: /usr/bin/xcodebuild -version
-
-      - name: Copy Podfile
-        run: cp -r SignIn/Podfile .
-
-      - name: Install CocoaPods
-        run: |
-          sudo gem install cocoapods -v '1.11.2'
-          pod repo list
-          pod setup
-
-      - name: Install dependencies
-        run: pod install --project-directory=SignIn/
 
       - name: Check current directory
         run: |
@@ -84,9 +81,6 @@ jobs:
           
       - name: Build
         id: build_ipa
-        run: |
-          xcodebuild archive \
-            -workspace SignIn.xcworkspace \
-            -scheme SignIn \
-            -configuration Release \
-            -archivePath ./build/SignIn.ipa
+        run: |          
+          xcodebuild archive -project SignIn/SignIn.xcodeproj -scheme SignIn -archivePath $RUNNER_TEMP/SignIn.xcarchive
+          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/SignIn.xcarchive -exportPath SignIn.ipa
