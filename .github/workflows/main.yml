@@ -82,9 +82,5 @@ jobs:
       - name: Build
         id: build_ipa
         run: |
-          xcodebuild -archive SignIn/SignIn.xcodeproj \
-          -scheme SignIn clean archive -configuration release \
-          -sdk iphoneos -archivePath $RUNNER_TEMP/SignIn.xcarchive
-          
-          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/SignIn.xcarchive \
-          -exportPath SignIn.ipa
+          xcodebuild archive -project SignIn/SignIn.xcodeproj -scheme SignIn -archivePath $RUNNER_TEMP/SignIn.xcarchive
+          xcodebuild -exportArchive -archivePath $RUNNER_TEMP/SignIn.xcarchive -exportPath SignIn.ipa
