@@ -82,7 +82,7 @@ jobs:
       - name: Build
         id: build_ipa
         run: |
-          xcodebuild -workspace SignIn/SignIn.xcworkspace \
+          xcodebuild -archive SignIn/SignIn.xcodeproj \
           -scheme SignIn clean archive -configuration release \
           -sdk iphoneos -archivePath $RUNNER_TEMP/SignIn.xcarchive
           
